@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Alpha AI 🤖</title>
     <style>
-        /* Keeps your original appearance exactly */
         body {
             margin: 0;
             padding: 0;
             background-color: #000;
             color: white;
             font-family: Arial, sans-serif;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            /* Fixes the height so buttons don't hide */
-            height: 100vh;
-            height: -webkit-fill-available; 
-            overflow: hidden;
         }
 
         header {
@@ -26,37 +22,44 @@
             color: #4CAF50;
             font-weight: bold;
             font-size: 20px;
+            background: #000;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
         }
 
+        /* The Chat Area */
         #chatBox {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
+            padding: 70px 15px 90px 15px; /* Added padding to clear the fixed header and footer */
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
-        /* Your original bubble styles */
         .message {
             max-width: 80%;
             padding: 12px 16px;
             border-radius: 18px;
             font-size: 16px;
-            line-height: 1.4;
         }
         .user-msg { align-self: flex-end; background: #4CAF50; color: white; border-bottom-right-radius: 2px; }
         .ai-msg { align-self: flex-start; background: #222; color: #eee; border-bottom-left-radius: 2px; }
 
-        /* Input area placement fix */
+        /* THE RIGID BOTTOM BAR */
         .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             display: flex;
             padding: 15px;
             gap: 10px;
             background: #000;
             border-top: 1px solid #222;
-            /* Pushes buttons up away from the bottom phone bar */
-            padding-bottom: calc(15px + env(safe-area-inset-bottom)); 
+            z-index: 100;
         }
 
         input {
@@ -107,7 +110,6 @@
             userInput.value = '';
 
             try {
-                // Your live Railway link is now integrated
                 const response = await fetch('https://my-ai-bot-production-8ff8.up.railway.app/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -118,7 +120,6 @@
                 appendMessage(data.reply, 'ai-msg');
             } catch (err) {
                 appendMessage("Server error. Check Railway connection.", 'ai-msg');
-                console.error(err);
             }
         }
 
