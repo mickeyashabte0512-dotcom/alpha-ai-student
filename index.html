@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Alpha AI 🤖</title>
     <style>
-        /* This part keeps your original look exactly */
+        /* Keeps your original appearance exactly */
         body {
             margin: 0;
             padding: 0;
@@ -14,7 +14,7 @@
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            /* This is the magic fix for mobile height */
+            /* Fixes the height so buttons don't hide */
             height: 100vh;
             height: -webkit-fill-available; 
             overflow: hidden;
@@ -37,7 +37,7 @@
             gap: 12px;
         }
 
-        /* Your exact bubble styles */
+        /* Your original bubble styles */
         .message {
             max-width: 80%;
             padding: 12px 16px;
@@ -48,14 +48,15 @@
         .user-msg { align-self: flex-end; background: #4CAF50; color: white; border-bottom-right-radius: 2px; }
         .ai-msg { align-self: flex-start; background: #222; color: #eee; border-bottom-left-radius: 2px; }
 
-        /* The input area that was hiding */
+        /* Input area placement fix */
         .input-area {
             display: flex;
             padding: 15px;
             gap: 10px;
             background: #000;
             border-top: 1px solid #222;
-            padding-bottom: env(safe-area-inset-bottom, 15px); /* Forces it above home bar */
+            /* Pushes buttons up away from the bottom phone bar */
+            padding-bottom: calc(15px + env(safe-area-inset-bottom)); 
         }
 
         input {
@@ -106,9 +107,8 @@
             userInput.value = '';
 
             try {
-                // IMPORTANT: Use your actual Railway link here!
-                // Example: https://alpha-ai-production.up.railway.app/chat
-                const response = await fetch('https://your-railway-link-here.up.railway.app/chat', {
+                // Your live Railway link is now integrated
+                const response = await fetch('https://my-ai-bot-production-8ff8.up.railway.app/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text })
