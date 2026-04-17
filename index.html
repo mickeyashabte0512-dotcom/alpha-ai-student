@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alpha AI 🤖</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #000;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* CHAT BOX */
+#chatBox {
+  width: 90%;
+  max-width: 500px;
+  height: 70vh;
+  margin-top: 10px;
+  padding: 10px;
+  background: #111;
+  border-radius: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* USER */
+.user {
+  align-self: flex-end;
+  background: #4CAF50;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 15px 15px 0 15px;
+  max-width: 75%;
+  word-wrap: break-word;
+}
+
+/* BOT */
+.bot {
+  align-self: flex-start;
+  background: #333; /* Fixed to show properly */
+  color: white;
+  padding: 10px 14px;
+  border-radius: 15px 15px 15px 0;
+  max-width: 75%;
+  word-wrap: break-word;
+}
+
+/* INPUT AREA */
+.container {
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  gap: 5px;
+  margin: 10px 0;
+}
+
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  color: #000;
+}
+
+button {
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: none;
+  background: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+/* MIC */
+.mic {
+  background: green;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Alpha AI 🤖</h2>
+
+<div id="chatBox"></div>
+
+<div class="container">
+  <input type="text" id="userInput" placeholder="Ask me anything...">
+  <button onclick="reply()">Send</button>
+  <button class="mic" onclick="startVoice()">🎤</button>
+</div>
+
+<script>
+// 🎤 VOICE INPUT
+function startVoice() {
+  let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Voice not supported 😢");
+    return;
+  }
+  let recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.start();
+  recognition.onresult = (event) => {
+    let text = event.results[0][0].transcript;
+    document.getElementById("userInput").value = text;
+    reply();
+  };
+}
+
+// 💬 SEND MESSAGE FUNCTION
+function reply() {
+  let inputField = document.getElementById("userInput");
+  let input = inputField.value.trim();
+  let chatBox = document.getElementById("chatBox");
+
+  if (!input) return;
+
+  chatBox.innerHTML += `<div class="user">${input}</div>`;
+  inputField.value = "";
+
+  let typingId = "typing-" + Date.now();
+  chatBox.innerHTML += `<div class="bot" id="${typingId}">Thinking...</div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  // 🚀 LINKED TO YOUR -8ff8 RAILWAY PROJECT
+  fetch("https://my-ai-bot-production-8ff8.up.railway.app/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: input })
+  })
+  .then(res => res.json())
+  .then(data => {
+    let typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+    // Support both .reply and .response formats
+    chatBox.innerHTML += `<div class="bot">${data.reply || data.response}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  })
+  .catch(err => {
+    let typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+    chatBox.innerHTML += `<div class="bot">Server connection error 😢</div>`;
+    console.error(err);
+  });
+}
+
+// Enter Key Support
+document.getElementById("userInput").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") reply();
+});
+</script>
+
+</body>
+  </html>
