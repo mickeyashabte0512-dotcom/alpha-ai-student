@@ -1,170 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alpha AI Student 🤖</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alpha AI Student 🤖</title>
 
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #0f172a;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            font-family: 'SOHO', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000000; /* Pure Black Background */
+            color: #ececec;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-    header {
-      padding: 15px;
-      text-align: center;
-      background: #1e293b;
-      border-bottom: 1px solid #334155;
-      font-size: 20px;
-      font-weight: 700;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
+        header {
+            padding: 10px;
+            text-align: center;
+            background: #000000;
+            border-bottom: 1px solid #2d2d2d;
+            font-size: 16px;
+            font-weight: 600;
+            color: #b4b4b4;
+            z-index: 10;
+        }
 
-    #chatBox {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    }
+        #chatBox {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 120px; 
+        }
 
-    .msg {
-      max-width: 85%;
-      padding: 12px 16px;
-      border-radius: 18px;
-      font-size: 15px;
-      line-height: 1.4;
-      word-wrap: break-word;
-      animation: fadeIn 0.3s ease;
-    }
+        /* RIGID INPUT AREA AT THE BOTTOM */
+        .inputArea {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(transparent, #000000 30%); /* Fade effect */
+            z-index: 20;
+        }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .input-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            align-items: center;
+            background: #2f2f2f; /* Dark Gray Input Background */
+            border-radius: 26px;
+            padding: 6px 12px;
+            gap: 8px;
+            border: 1px solid #424242;
+        }
 
-    .user {
-      background: #22c55e;
-      color: white;
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
-    }
+        input {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            font-size: 16px;
+        }
 
-    .bot {
-      background: #334155;
-      color: #f1f5f9;
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-      border: 1px solid #475569;
-    }
+        /* WHITE BUTTONS LIKE CHATGPT */
+        button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #ffffff; /* Pure White Button */
+            color: #000000; /* Black Icon */
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
 
-    .typing {
-      font-style: italic;
-      opacity: 0.7;
-      font-size: 13px;
-    }
+        button:hover { opacity: 0.8; }
+        .voice-btn { background: #424242; color: white; }
 
-    .inputArea {
-      display: flex;
-      padding: 15px;
-      background: #1e293b;
-      gap: 8px;
-      border-top: 1px solid #334155;
-    }
+        /* CHAT BUBBLES */
+        .msg {
+            max-width: 85%;
+            padding: 8px 0; /* ChatGPT style is more like a list */
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            animation: fadeIn 0.4s ease;
+        }
 
-    input {
-      flex: 1;
-      padding: 12px 15px;
-      border-radius: 25px;
-      border: 1px solid #334155;
-      background: #0f172a;
-      color: white;
-      outline: none;
-      font-size: 16px; /* Prevents iOS auto-zoom */
-    }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
-    button {
-      padding: 10px 18px;
-      border-radius: 25px;
-      border: none;
-      background: #22c55e;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
+        /* User looks like a simple text block on the right */
+        .user {
+            align-self: flex-end;
+            background: #2f2f2f;
+            padding: 12px 18px;
+            border-radius: 20px;
+        }
 
-    button:active { transform: scale(0.95); }
-    
-    .voice-btn { background: #475569; }
-  </style>
+        /* Bot looks like plain text on the left */
+        .bot {
+            align-self: flex-start;
+            color: #d1d1d1;
+        }
+
+        .bot::before {
+            content: "🤖 Alpha: ";
+            font-weight: bold;
+            color: #10a37f; /* ChatGPT Green */
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .typing {
+            font-style: italic;
+            opacity: 0.5;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 
-<header>Alpha AI Student 🤖</header>
-<div id="chatBox"></div>
+<header>Alpha AI Student</header>
+
+<div id="chatBox">
+    <div class="msg bot">How can I help you today?</div>
+</div>
+
 <div class="inputArea">
-  <button class="voice-btn" onclick="startVoice()">🎤</button>
-  <input id="userInput" placeholder="Ask anything..." onkeypress="if(event.key==='Enter') sendMessage()">
-  <button onclick="sendMessage()">Send</button>
+    <div class="input-container">
+        <button class="voice-btn" onclick="startVoice()">🎤</button>
+        <input id="userInput" placeholder="Message Alpha AI..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">↑</button> </div>
 </div>
 
 <script>
-const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
-let messages = [];
+    const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
+    let chatBox = document.getElementById("chatBox");
 
-function sendMessage() {
-  let inputEl = document.getElementById("userInput");
-  let chatBox = document.getElementById("chatBox");
-  let input = inputEl.value.trim();
-  if (!input) return;
+    function sendMessage() {
+        let inputEl = document.getElementById("userInput");
+        let input = inputEl.value.trim();
+        if (!input) return;
 
-  chatBox.innerHTML += `<div class="msg user">${input}</div>`;
-  inputEl.value = "";
-  chatBox.scrollTop = chatBox.scrollHeight;
+        chatBox.innerHTML += `<div class="msg user">${input}</div>`;
+        inputEl.value = "";
+        
+        let typingDiv = document.createElement("div");
+        typingDiv.className = "msg bot typing";
+        typingDiv.id = "typing";
+        typingDiv.innerText = "Thinking...";
+        chatBox.appendChild(typingDiv);
+        
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-  let typingDiv = document.createElement("div");
-  typingDiv.className = "msg bot typing";
-  typingDiv.id = "typing";
-  typingDiv.innerText = "Alpha is thinking...";
-  chatBox.appendChild(typingDiv);
+        fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: input })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("typing")?.remove();
+            let reply = data.reply || "Connection lost. 😢";
+            chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        })
+        .catch(() => {
+            document.getElementById("typing")?.remove();
+            chatBox.innerHTML += `<div class="msg bot">Error reaching server.</div>`;
+        });
+    }
 
-  fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: input })
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("typing")?.remove();
-    let reply = data.reply || "No response 😢";
-    chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  })
-  .catch(() => {
-    document.getElementById("typing")?.remove();
-    chatBox.innerHTML += `<div class="msg bot">Server error 😢 Check Railway!</div>`;
-  });
-}
-
-function startVoice() {
-  let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return alert("Voice not supported");
-  let recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.start();
-  recognition.onresult = (event) => {
-    document.getElementById("userInput").value = event.results[0][0].transcript;
-    sendMessage();
-  };
-}
+    function startVoice() {
+        let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return alert("Voice not supported.");
+        let recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.start();
+        recognition.onresult = (event) => {
+            document.getElementById("userInput").value = event.results[0][0].transcript;
+            sendMessage();
+        };
+    }
 </script>
+
 </body>
 </html>
