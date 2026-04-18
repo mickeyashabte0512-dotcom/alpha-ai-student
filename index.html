@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <title>Alpha AI Student 🤖</title>
 
     <style>
@@ -11,7 +16,7 @@
         body {
             margin: 0;
             font-family: 'SOHO', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #000000; /* Pure Black Background */
+            background: #000000;
             color: #ececec;
             display: flex;
             flex-direction: column;
@@ -40,7 +45,6 @@
             padding-bottom: 120px; 
         }
 
-        /* RIGID INPUT AREA AT THE BOTTOM */
         .inputArea {
             position: fixed;
             bottom: 0;
@@ -50,7 +54,7 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            background: linear-gradient(transparent, #000000 30%); /* Fade effect */
+            background: linear-gradient(transparent, #000000 30%);
             z-index: 20;
         }
 
@@ -59,7 +63,7 @@
             max-width: 800px;
             display: flex;
             align-items: center;
-            background: #2f2f2f; /* Dark Gray Input Background */
+            background: #2f2f2f;
             border-radius: 26px;
             padding: 6px 12px;
             gap: 8px;
@@ -76,14 +80,13 @@
             font-size: 16px;
         }
 
-        /* WHITE BUTTONS LIKE CHATGPT */
         button {
             width: 36px;
             height: 36px;
             border-radius: 50%;
             border: none;
-            background: #ffffff; /* Pure White Button */
-            color: #000000; /* Black Icon */
+            background: #ffffff;
+            color: #000000;
             font-weight: bold;
             cursor: pointer;
             display: flex;
@@ -95,10 +98,9 @@
         button:hover { opacity: 0.8; }
         .voice-btn { background: #424242; color: white; }
 
-        /* CHAT BUBBLES */
         .msg {
             max-width: 85%;
-            padding: 8px 0; /* ChatGPT style is more like a list */
+            padding: 8px 0;
             font-size: 16px;
             line-height: 1.6;
             word-wrap: break-word;
@@ -110,7 +112,6 @@
             to { opacity: 1; }
         }
 
-        /* User looks like a simple text block on the right */
         .user {
             align-self: flex-end;
             background: #2f2f2f;
@@ -118,7 +119,6 @@
             border-radius: 20px;
         }
 
-        /* Bot looks like plain text on the left */
         .bot {
             align-self: flex-start;
             color: #d1d1d1;
@@ -127,7 +127,7 @@
         .bot::before {
             content: "🤖 Alpha: ";
             font-weight: bold;
-            color: #10a37f; /* ChatGPT Green */
+            color: #10a37f;
             display: block;
             margin-bottom: 5px;
         }
@@ -151,10 +151,18 @@
     <div class="input-container">
         <button class="voice-btn" onclick="startVoice()">🎤</button>
         <input id="userInput" placeholder="Message Alpha AI..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">↑</button> </div>
+        <button onclick="sendMessage()">↑</button>
+    </div>
 </div>
 
 <script>
+    // AUTO-HIDE ADDRESS BAR SCRIPT
+    window.addEventListener("load", function() {
+        setTimeout(function() {
+            window.scrollTo(0, 1);
+        }, 0);
+    });
+
     const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
     let chatBox = document.getElementById("chatBox");
 
