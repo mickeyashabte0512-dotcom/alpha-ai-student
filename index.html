@@ -96,7 +96,7 @@
             justify-content: center;
         }
 
-        /* FORMATTING FOR AI TABLES & LISTS */
+        /* FIXES HOW TABLES AND LISTS LOOK IN THE BOT REPLY */
         .bot table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
         .bot th, .bot td { border: 1px solid #424242; padding: 8px; text-align: left; }
         .bot th { background: #1e1e1e; }
@@ -115,7 +115,7 @@
 
         .user { align-self: flex-end; background: #2f2f2f; padding: 12px 18px; border-radius: 20px; }
         .bot { align-self: flex-start; color: #d1d1d1; }
-        .bot::before { content: "🤖 Alpha: "; font-weight: bold; color: #10a37f; display: block; margin-bottom: 5px; }
+        .bot::before { content: "🤖 Alpha:"; font-weight: bold; color: #10a37f; display: block; margin-bottom: 5px; }
 
         .typing { font-style: italic; opacity: 0.5; font-size: 14px; }
     </style>
@@ -137,6 +137,11 @@
 </div>
 
 <script>
+    // AUTO-HIDE ADDRESS BAR
+    window.addEventListener("load", function() {
+        setTimeout(function() { window.scrollTo(0, 1); }, 0);
+    });
+
     const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
     let chatBox = document.getElementById("chatBox");
 
@@ -164,7 +169,7 @@
         .then(data => {
             document.getElementById("typing")?.remove();
             
-            // THE FORMATTING MAGIC
+            // THE ALIGNMENT FIX
             let rawReply = data.reply || "Connection lost. 😢";
             let formattedReply = marked.parse(rawReply); 
 
