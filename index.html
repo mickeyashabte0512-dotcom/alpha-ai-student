@@ -1,178 +1,170 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alpha AI Student 🤖</title>
 
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Arial;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: #0f172a;
       color: white;
       display: flex;
       flex-direction: column;
       height: 100vh;
+      overflow: hidden;
     }
 
     header {
       padding: 15px;
       text-align: center;
       background: #1e293b;
-      font-size: 18px;
-      font-weight: bold;
+      border-bottom: 1px solid #334155;
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
 
     #chatBox {
       flex: 1;
-      padding: 10px;
+      padding: 15px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     }
 
     .msg {
-      max-width: 75%;
-      padding: 10px;
-      border-radius: 12px;
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.4;
       word-wrap: break-word;
+      animation: fadeIn 0.3s ease;
     }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
     .user {
       background: #22c55e;
+      color: white;
       align-self: flex-end;
+      border-bottom-right-radius: 4px;
     }
 
     .bot {
       background: #334155;
+      color: #f1f5f9;
       align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #475569;
     }
 
     .typing {
       font-style: italic;
       opacity: 0.7;
+      font-size: 13px;
     }
 
     .inputArea {
       display: flex;
-      padding: 10px;
+      padding: 15px;
       background: #1e293b;
-      gap: 5px;
+      gap: 8px;
+      border-top: 1px solid #334155;
     }
 
     input {
       flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
+      padding: 12px 15px;
+      border-radius: 25px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: white;
       outline: none;
+      font-size: 16px; /* Prevents iOS auto-zoom */
     }
 
     button {
-      padding: 10px 12px;
-      border-radius: 10px;
+      padding: 10px 18px;
+      border-radius: 25px;
       border: none;
       background: #22c55e;
       color: white;
-      font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
+      transition: transform 0.1s;
     }
+
+    button:active { transform: scale(0.95); }
+    
+    .voice-btn { background: #475569; }
   </style>
 </head>
-
 <body>
 
 <header>Alpha AI Student 🤖</header>
-
 <div id="chatBox"></div>
-
 <div class="inputArea">
-  <button onclick="startVoice()">🎤</button>
-  <input id="userInput" placeholder="Ask anything...">
+  <button class="voice-btn" onclick="startVoice()">🎤</button>
+  <input id="userInput" placeholder="Ask anything..." onkeypress="if(event.key==='Enter') sendMessage()">
   <button onclick="sendMessage()">Send</button>
 </div>
 
 <script>
-
 const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
-
-// 💬 Chat memory
 let messages = [];
 
 function sendMessage() {
-
   let inputEl = document.getElementById("userInput");
   let chatBox = document.getElementById("chatBox");
-
   let input = inputEl.value.trim();
   if (!input) return;
 
   chatBox.innerHTML += `<div class="msg user">${input}</div>`;
   inputEl.value = "";
+  chatBox.scrollTop = chatBox.scrollHeight;
 
-  // typing indicator
   let typingDiv = document.createElement("div");
   typingDiv.className = "msg bot typing";
   typingDiv.id = "typing";
-  typingDiv.innerText = "AI is typing...";
+  typingDiv.innerText = "Alpha is thinking...";
   chatBox.appendChild(typingDiv);
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-
-  // save message
-  messages.push({ role: "user", content: input });
 
   fetch(API_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ message: input, history: messages })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: input })
   })
   .then(res => res.json())
   .then(data => {
-
     document.getElementById("typing")?.remove();
-
     let reply = data.reply || "No response 😢";
-
     chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
-
     chatBox.scrollTop = chatBox.scrollHeight;
-
-    // save AI reply
-    messages.push({ role: "assistant", content: reply });
   })
   .catch(() => {
-
     document.getElementById("typing")?.remove();
-
-    chatBox.innerHTML += `<div class="msg bot">Server error 😢</div>`;
+    chatBox.innerHTML += `<div class="msg bot">Server error 😢 Check Railway!</div>`;
   });
 }
 
-// 🎤 Voice input
 function startVoice() {
   let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert("Voice not supported");
-    return;
-  }
-
+  if (!SpeechRecognition) return alert("Voice not supported");
   let recognition = new SpeechRecognition();
   recognition.lang = "en-US";
-
   recognition.start();
-
   recognition.onresult = (event) => {
-    let text = event.results[0][0].transcript;
-    document.getElementById("userInput").value = text;
+    document.getElementById("userInput").value = event.results[0][0].transcript;
     sendMessage();
   };
 }
-
 </script>
-
 </body>
 </html>
