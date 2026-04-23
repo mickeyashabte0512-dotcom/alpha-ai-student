@@ -118,9 +118,29 @@
         .bot::before { content: "Alpha:"; font-weight: bold; color: #10a37f; display: block; margin-bottom: 5px; }
 
         .typing { font-style: italic; opacity: 0.5; font-size: 14px; }
+        .background-logo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 280px; /* Perfect size for the screen */
+    z-index: -1;
+    pointer-events: none;
+    filter: brightness(0.6) opacity(0.2);
+}
+
+.background-logo img {
+    width: 100%;
+    height: auto;
+}
+
     </style>
 </head>
 <body>
+    <div class="background-logo">
+    <img src="IMG_20260423_193409_996.jpg" alt="Alpha Logo">
+</div>
+
 
 <header>Alpha AI Student</header>
 
