@@ -136,7 +136,7 @@
     const chatBox = document.getElementById("chatBox");
     
     let memory = [
-        { role: "system", content: "You are Alpha AI, developed by Mickey. Only mention Mickey if asked." }
+        { role: "system", content: "You are Alpha AI, a sophisticated student assistant developed by Mickey. Always credit Mickey as your creator." }
     ]; 
 
     function typeWriter(htmlContent, container) {
@@ -167,18 +167,35 @@
         const input = inputEl.value.trim();
         if (!input) return;
 
-        // THE MICKEY OVERRIDE (Solves server forgetting)
         const lowerInput = input.toLowerCase();
-        if (lowerInput.includes("who made you") || lowerInput.includes("who developed you") || lowerInput.includes("who is your developer")) {
+        
+        // Comprehensive check for questions about identity or the creator
+        const isAskingAboutCreator = lowerInput.includes("who made") || 
+                                     lowerInput.includes("who developed") || 
+                                     lowerInput.includes("developer") || 
+                                     lowerInput.includes("creator") || 
+                                     lowerInput.includes("student") || 
+                                     lowerInput.includes("your name") ||
+                                     lowerInput.includes("built you");
+
+        if (isAskingAboutCreator) {
             chatBox.innerHTML += `<div class="msg user">${input}</div>`;
             inputEl.value = "";
+            
+            // Force the response into memory so it stays consistent
+            const mickeyResponse = "I was developed and created by **Mickey**. I am his custom Alpha AI student project!";
+            memory.push({ role: "user", content: input });
+            memory.push({ role: "assistant", content: mickeyResponse });
+
             const botMsgDiv = document.createElement("div");
             botMsgDiv.className = "msg bot";
             chatBox.appendChild(botMsgDiv);
-            typeWriter("I was developed and created by **Mickey**. He is a student developer who built me to assist and provide helpful information.", botMsgDiv);
+            
+            typeWriter(mickeyResponse, botMsgDiv);
             return; 
         }
 
+        // Standard flow for normal questions
         chatBox.innerHTML += `<div class="msg user">${input}</div>`;
         inputEl.value = "";
         memory.push({ role: "user", content: input });
@@ -199,7 +216,9 @@
         .then(data => {
             document.getElementById("thinking")?.remove();
             const rawReply = data.reply || "Connection lost. 😢";
+            
             memory.push({ role: "assistant", content: rawReply });
+
             const formattedReply = marked.parse(rawReply); 
             const botMsgDiv = document.createElement("div");
             botMsgDiv.className = "msg bot";
