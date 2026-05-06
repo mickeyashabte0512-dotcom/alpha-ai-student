@@ -161,8 +161,10 @@
 <script>
     const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
     const chatBox = document.getElementById("chatBox");
+    
+    // This array will hold the conversation history
+    let memory = []; 
 
-    // ADVANCED TYPEWRITER: Handles punctuation, capitalization, and HTML tags
     function typeWriter(htmlContent, container) {
         let i = 0;
         let currentHTML = "";
@@ -171,21 +173,14 @@
         function type() {
             if (i < htmlContent.length) {
                 let char = htmlContent.charAt(i);
-                
                 if (char === "<") isTag = true;
                 currentHTML += char;
                 if (char === ">") isTag = false;
-
-                if (isTag) {
-                    i++;
-                    type();
-                    return;
-                }
-
+                if (isTag) { i++; type(); return; }
                 container.innerHTML = currentHTML;
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(type, 15); // Speed: 15ms for smooth professional typing
+                setTimeout(type, 15);
             } else {
                 container.innerHTML = htmlContent;
                 chatBox.scrollTop = chatBox.scrollHeight;
@@ -199,11 +194,12 @@
         const input = inputEl.value.trim();
         if (!input) return;
 
-        // Add user message
         chatBox.innerHTML += `<div class="msg user">${input}</div>`;
         inputEl.value = "";
         
-        // Add thinking indicator
+        // Add the user's message to memory
+        memory.push({ role: "user", content: input });
+
         let typingDiv = document.createElement("div");
         typingDiv.className = "msg bot typing-indicator";
         typingDiv.id = "thinking";
@@ -214,15 +210,19 @@
         fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: input })
+            // SENDING THE FULL MEMORY INSTEAD OF JUST THE MESSAGE
+            body: JSON.stringify({ history: memory, message: input }) 
         })
         .then(res => res.json())
         .then(data => {
             document.getElementById("thinking")?.remove();
             
             const rawReply = data.reply || "Connection lost. 😢";
-            const formattedReply = marked.parse(rawReply); 
+            
+            // Add the AI's reply to memory so it remembers next time
+            memory.push({ role: "assistant", content: rawReply });
 
+            const formattedReply = marked.parse(rawReply); 
             const botMsgDiv = document.createElement("div");
             botMsgDiv.className = "msg bot";
             chatBox.appendChild(botMsgDiv);
@@ -231,13 +231,13 @@
         })
         .catch(() => {
             document.getElementById("thinking")?.remove();
-            chatBox.innerHTML += `<div class="msg bot">Error reaching server. Check connection.</div>`;
+            chatBox.innerHTML += `<div class="msg bot">Error reaching server.</div>`;
         });
     }
 
     function startVoice() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return alert("Voice not supported on this browser.");
+        if (!SpeechRecognition) return alert("Voice not supported.");
         const recognition = new SpeechRecognition();
         recognition.lang = "en-US";
         recognition.start();
