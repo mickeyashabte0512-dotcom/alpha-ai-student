@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    
     <title>𝛼 Alpha AI Student</title>
 
     <style>
         * { box-sizing: border-box; }
-        
         body {
             margin: 0;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -25,7 +21,6 @@
             height: 100vh;
             overflow: hidden;
         }
-
         header {
             padding: 10px;
             text-align: center;
@@ -36,7 +31,6 @@
             color: #b4b4b4;
             z-index: 10;
         }
-
         #chatBox {
             flex: 1;
             padding: 20px;
@@ -47,7 +41,6 @@
             padding-bottom: 120px; 
             scroll-behavior: smooth;
         }
-
         .inputArea {
             position: fixed;
             bottom: 0;
@@ -60,7 +53,6 @@
             background: linear-gradient(transparent, #000000 30%);
             z-index: 20;
         }
-
         .input-container {
             width: 100%;
             max-width: 800px;
@@ -72,7 +64,6 @@
             gap: 8px;
             border: 1px solid #424242;
         }
-
         input {
             flex: 1;
             padding: 10px;
@@ -82,7 +73,6 @@
             outline: none;
             font-size: 16px;
         }
-
         button {
             width: 36px;
             height: 36px;
@@ -96,14 +86,6 @@
             align-items: center;
             justify-content: center;
         }
-
-        /* Bot Formatting Styles */
-        .bot table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
-        .bot th, .bot td { border: 1px solid #424242; padding: 8px; text-align: left; }
-        .bot th { background: #1e1e1e; }
-        .bot p { margin: 5px 0; }
-        .bot ul { padding-left: 20px; }
-
         .msg {
             max-width: 90%;
             font-size: 16px;
@@ -111,15 +93,11 @@
             word-wrap: break-word;
             animation: fadeIn 0.3s ease;
         }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .user { align-self: flex-end; background: #2f2f2f; padding: 12px 18px; border-radius: 20px; }
         .bot { align-self: flex-start; color: #d1d1d1; }
         .bot::before { content: "Alpha:"; font-weight: bold; color: #10a37f; display: block; margin-bottom: 5px; }
-
         .typing-indicator { font-style: italic; opacity: 0.5; font-size: 14px; }
-
         .background-logo {
             position: fixed;
             top: 50%;
@@ -128,13 +106,9 @@
             width: 280px;
             z-index: -1;
             pointer-events: none;
-            filter: brightness(0.6) opacity(0.15); /* Faint logo for professionalism */
+            filter: brightness(0.6) opacity(0.15);
         }
-
-        .background-logo img {
-            width: 100%;
-            height: auto;
-        }
+        .background-logo img { width: 100%; height: auto; }
     </style>
 </head>
 <body>
@@ -153,8 +127,7 @@
     <div class="input-container">
         <button style="background:#424242;color:white;" onclick="startVoice()">🎤</button>
         <input id="userInput" placeholder="Message Alpha AI..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">✔️
-    </button>
+        <button onclick="sendMessage()">𝛼</button>
     </div>
 </div>
 
@@ -162,14 +135,14 @@
     const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
     const chatBox = document.getElementById("chatBox");
     
-    // This array will hold the conversation history
-    let memory = []; 
+    let memory = [
+        { role: "system", content: "You are Alpha AI, developed by Mickey. Only mention Mickey if asked." }
+    ]; 
 
     function typeWriter(htmlContent, container) {
         let i = 0;
         let currentHTML = "";
         let isTag = false;
-        
         function type() {
             if (i < htmlContent.length) {
                 let char = htmlContent.charAt(i);
@@ -194,10 +167,20 @@
         const input = inputEl.value.trim();
         if (!input) return;
 
+        // THE MICKEY OVERRIDE (Solves server forgetting)
+        const lowerInput = input.toLowerCase();
+        if (lowerInput.includes("who made you") || lowerInput.includes("who developed you") || lowerInput.includes("who is your developer")) {
+            chatBox.innerHTML += `<div class="msg user">${input}</div>`;
+            inputEl.value = "";
+            const botMsgDiv = document.createElement("div");
+            botMsgDiv.className = "msg bot";
+            chatBox.appendChild(botMsgDiv);
+            typeWriter("I was developed and created by **Mickey**. He is a student developer who built me to assist and provide helpful information.", botMsgDiv);
+            return; 
+        }
+
         chatBox.innerHTML += `<div class="msg user">${input}</div>`;
         inputEl.value = "";
-        
-        // Add the user's message to memory
         memory.push({ role: "user", content: input });
 
         let typingDiv = document.createElement("div");
@@ -210,23 +193,17 @@
         fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // SENDING THE FULL MEMORY INSTEAD OF JUST THE MESSAGE
             body: JSON.stringify({ history: memory, message: input }) 
         })
         .then(res => res.json())
         .then(data => {
             document.getElementById("thinking")?.remove();
-            
             const rawReply = data.reply || "Connection lost. 😢";
-            
-            // Add the AI's reply to memory so it remembers next time
             memory.push({ role: "assistant", content: rawReply });
-
             const formattedReply = marked.parse(rawReply); 
             const botMsgDiv = document.createElement("div");
             botMsgDiv.className = "msg bot";
             chatBox.appendChild(botMsgDiv);
-
             typeWriter(formattedReply, botMsgDiv);
         })
         .catch(() => {
@@ -247,6 +224,5 @@
         };
     }
 </script>
-
 </body>
 </html>
