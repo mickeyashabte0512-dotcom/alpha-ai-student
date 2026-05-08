@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Alpha AI Student</title>
 
     <style>
@@ -26,6 +29,7 @@
             font-size: 16px;
             font-weight: 600;
             color: #b4b4b4;
+            z-index: 10;
         }
         #chatBox {
             flex: 1;
@@ -34,7 +38,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            padding-bottom: 100px; 
+            padding-bottom: 120px; 
             scroll-behavior: smooth;
         }
         .inputArea {
@@ -42,146 +46,201 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(transparent, #000000 40%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(transparent, #000000 30%);
+            z-index: 20;
         }
-        /* FIXED CONTAINER: Keeps buttons from falling off the screen */
         .input-container {
             width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 800px;
             display: flex;
             align-items: center;
             background: #2f2f2f;
-            border-radius: 30px;
-            padding: 5px 10px;
-            gap: 5px;
+            border-radius: 26px;
+            padding: 6px 12px;
+            gap: 8px;
             border: 1px solid #424242;
         }
-        .action-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            cursor: pointer;
-            flex-shrink: 0; /* Prevents button from disappearing */
-        }
-        input#userInput {
+        input {
             flex: 1;
-            min-width: 0; /* Allows input to shrink so buttons fit */
-            padding: 8px;
+            padding: 10px;
             background: transparent;
             border: none;
             color: white;
             outline: none;
-            font-size: 15px;
+            font-size: 16px;
         }
-        .send-btn {
-            width: 35px;
-            height: 35px;
+        button {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             border: none;
             background: #ffffff;
             color: #000000;
             font-weight: bold;
             cursor: pointer;
-            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .msg { max-width: 85%; line-height: 1.5; animation: fadeIn 0.3s ease; }
+        .msg {
+            max-width: 90%;
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .user { align-self: flex-end; background: #2f2f2f; padding: 10px 15px; border-radius: 18px; }
+        .user { align-self: flex-end; background: #2f2f2f; padding: 12px 18px; border-radius: 20px; }
         .bot { align-self: flex-start; color: #d1d1d1; }
-        .bot::before { content: "Alpha:"; font-weight: bold; color: #10a37f; display: block; }
-        .img-preview { max-width: 150px; border-radius: 8px; margin-top: 5px; }
+        .bot::before { content: "Alpha:"; font-weight: bold; color: #10a37f; display: block; margin-bottom: 5px; }
+        .typing-indicator { font-style: italic; opacity: 0.5; font-size: 14px; }
+        .background-logo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            z-index: -1;
+            pointer-events: none;
+            filter: brightness(0.6) opacity(0.15);
+        }
+        .background-logo img { width: 100%; height: auto; }
     </style>
 </head>
 <body>
 
+<div class="background-logo">
+    <img src="IMG_20260423_193409_996.jpg" alt="Alpha Logo">
+</div>
+
 <header>Alpha AI Student</header>
-<div id="chatBox"><div class="msg bot">Ready to help, Mickey! Send a question or a photo.</div></div>
+
+<div id="chatBox">
+    <div class="msg bot">How can I help you today?</div>
+</div>
 
 <div class="inputArea">
     <div class="input-container">
-        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewImage(this)">
-        <button class="action-btn" onclick="document.getElementById('fileInput').click()">📷</button>
-        
+        <button style="background:#424242;color:white;" onclick="startVoice()">🎤</button>
         <input id="userInput" placeholder="Message Alpha AI..." onkeypress="if(event.key==='Enter') sendMessage()">
-
-        <button class="action-btn" onclick="startVoice()">🎤</button>
-        <button class="send-btn" onclick="sendMessage()">✔️</button>
+        <button onclick="sendMessage()">✔️</button>
     </div>
 </div>
 
 <script>
     const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
     const chatBox = document.getElementById("chatBox");
-    let selectedImageBase64 = null;
-    let memory = [{ role: "system", content: "You are Alpha AI, created by Mickey. Be helpful and concise." }];
+    
+    let memory = [
+        { role: "system", content: "You are Alpha AI, a sophisticated student assistant developed by Mickey. Always credit Mickey as your creator." }
+    ]; 
 
-    function previewImage(input) {
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedImageBase64 = e.target.result.split(',')[1];
-                chatBox.innerHTML += `<div class="msg user"><img src="${e.target.result}" class="img-preview"><br><i>Photo attached!</i></div>`;
+    function typeWriter(htmlContent, container) {
+        let i = 0;
+        let currentHTML = "";
+        let isTag = false;
+        function type() {
+            if (i < htmlContent.length) {
+                let char = htmlContent.charAt(i);
+                if (char === "<") isTag = true;
+                currentHTML += char;
+                if (char === ">") isTag = false;
+                if (isTag) { i++; type(); return; }
+                container.innerHTML = currentHTML;
+                i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-            };
-            reader.readAsDataURL(file);
+                setTimeout(type, 15);
+            } else {
+                container.innerHTML = htmlContent;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
         }
+        type();
     }
 
     function sendMessage() {
         const inputEl = document.getElementById("userInput");
-        const text = inputEl.value.trim();
-        if (!text && !selectedImageBase64) return;
+        const input = inputEl.value.trim();
+        if (!input) return;
 
-        // Mickey Identity Guard
-        if (text.toLowerCase().includes("who made") || text.toLowerCase().includes("srudent")) {
-            const botMsg = "I was created by "Mickey" for a student project!";
-            chatBox.innerHTML += `<div class="msg user">${text}</div><div class="msg bot">${botMsg}</div>`;
+        const lowerInput = input.toLowerCase();
+        
+        // Comprehensive check for questions about identity or the creator
+        const isAskingAboutCreator = lowerInput.includes("who made") || 
+                                     lowerInput.includes("who developed") || 
+                                     lowerInput.includes("developer") || 
+                                     lowerInput.includes("creator") || 
+                                     lowerInput.includes("student") || 
+                                     lowerInput.includes("your name") ||
+                                     lowerInput.includes("built you");
+
+        if (isAskingAboutCreator) {
+            chatBox.innerHTML += `<div class="msg user">${input}</div>`;
             inputEl.value = "";
-            chatBox.scrollTop = chatBox.scrollHeight;
-            return;
+            
+            // Force the response into memory so it stays consistent
+            const mickeyResponse = "I was developed and created by **Mickey**. I am his custom Alpha AI student project!";
+            memory.push({ role: "user", content: input });
+            memory.push({ role: "assistant", content: mickeyResponse });
+
+            const botMsgDiv = document.createElement("div");
+            botMsgDiv.className = "msg bot";
+            chatBox.appendChild(botMsgDiv);
+            
+            typeWriter(mickeyResponse, botMsgDiv);
+            return; 
         }
 
-        if (text) chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+        // Standard flow for normal questions
+        chatBox.innerHTML += `<div class="msg user">${input}</div>`;
         inputEl.value = "";
+        memory.push({ role: "user", content: input });
 
-        const payload = { history: memory, message: text || "What is in this image?", image: selectedImageBase64 };
-        selectedImageBase64 = null; // Clear image immediately to prevent double sending
+        let typingDiv = document.createElement("div");
+        typingDiv.className = "msg bot typing-indicator";
+        typingDiv.id = "thinking";
+        typingDiv.innerText = "Thinking...";
+        chatBox.appendChild(typingDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
         fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ history: memory, message: input }) 
         })
         .then(res => res.json())
         .then(data => {
-            const reply = data.reply || "I'm having trouble connecting to the server.";
-            memory.push({ role: "user", content: text || "[Image]" }, { role: "assistant", content: reply });
-            const botDiv = document.createElement("div");
-            botDiv.className = "msg bot";
-            botDiv.innerHTML = marked.parse(reply);
-            chatBox.appendChild(botDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            document.getElementById("thinking")?.remove();
+            const rawReply = data.reply || "Connection lost. 😢";
+            
+            memory.push({ role: "assistant", content: rawReply });
+
+            const formattedReply = marked.parse(rawReply); 
+            const botMsgDiv = document.createElement("div");
+            botMsgDiv.className = "msg bot";
+            chatBox.appendChild(botMsgDiv);
+            typeWriter(formattedReply, botMsgDiv);
         })
         .catch(() => {
-            chatBox.innerHTML += `<div class="msg bot">Server error. Check your Railway logs.</div>`;
+            document.getElementById("thinking")?.remove();
+            chatBox.innerHTML += `<div class="msg bot">Error reaching server.</div>`;
         });
     }
 
     function startVoice() {
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return alert("Voice not supported.");
+        const recognition = new SpeechRecognition();
         recognition.lang = "en-US";
         recognition.start();
-        recognition.onresult = (e) => { document.getElementById("userInput").value = e.results[0][0].transcript; };
+        recognition.onresult = (event) => {
+            document.getElementById("userInput").value = event.results[0][0].transcript;
+            sendMessage();
+        };
     }
 </script>
 </body>
