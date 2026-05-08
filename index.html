@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <title>Alpha AI Student</title>
-
     <style>
         * { box-sizing: border-box; }
         body {
@@ -29,7 +25,6 @@
             font-size: 16px;
             font-weight: 600;
             color: #b4b4b4;
-            z-index: 10;
         }
         #chatBox {
             flex: 1;
@@ -46,26 +41,38 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            background: linear-gradient(transparent, #000000 30%);
-            z-index: 20;
+            padding: 15px;
+            background: linear-gradient(transparent, #000000 40%);
+            z-index: 100;
         }
         .input-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             background: #2f2f2f;
-            border-radius: 26px;
-            padding: 6px 12px;
-            gap: 8px;
+            border-radius: 30px;
+            padding: 5px 10px;
+            gap: 5px;
             border: 1px solid #424242;
         }
-        input {
+        .action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        input#userInput {
             flex: 1;
+            min-width: 0;
             padding: 10px;
             background: transparent;
             border: none;
@@ -73,172 +80,150 @@
             outline: none;
             font-size: 16px;
         }
-        button {
-            width: 36px;
-            height: 36px;
+        .send-btn {
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             border: none;
             background: #ffffff;
             color: #000000;
             font-weight: bold;
             cursor: pointer;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .msg {
-            max-width: 90%;
-            font-size: 16px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
-        }
+        .msg { max-width: 85%; line-height: 1.5; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .user { align-self: flex-end; background: #2f2f2f; padding: 12px 18px; border-radius: 20px; }
         .bot { align-self: flex-start; color: #d1d1d1; }
         .bot::before { content: "Alpha:"; font-weight: bold; color: #10a37f; display: block; margin-bottom: 5px; }
-        .typing-indicator { font-style: italic; opacity: 0.5; font-size: 14px; }
-        .background-logo {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 280px;
-            z-index: -1;
-            pointer-events: none;
-            filter: brightness(0.6) opacity(0.15);
-        }
-        .background-logo img { width: 100%; height: auto; }
+        .img-preview { max-width: 150px; border-radius: 10px; margin-top: 5px; border: 1px solid #424242; }
     </style>
 </head>
 <body>
 
-<div class="background-logo">
-    <img src="IMG_20260423_193409_996.jpg" alt="Alpha Logo">
-</div>
-
 <header>Alpha AI Student</header>
-
-<div id="chatBox">
-    <div class="msg bot">How can I help you today?</div>
-</div>
+<div id="chatBox"></div>
 
 <div class="inputArea">
     <div class="input-container">
-        <button style="background:#424242;color:white;" onclick="startVoice()">🎤</button>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewImage(this)">
+        <button class="action-btn" onclick="document.getElementById('fileInput').click()">📷</button>
         <input id="userInput" placeholder="Message Alpha AI..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">✔️</button>
+        <button class="action-btn" onclick="startVoice()">🎤</button>
+        <button class="send-btn" onclick="sendMessage()">✔️</button>
     </div>
 </div>
 
 <script>
     const API_URL = "https://my-ai-bot-production-8ff8.up.railway.app/chat";
     const chatBox = document.getElementById("chatBox");
-    
-    let memory = [
-        { role: "system", content: "You are Alpha AI, a sophisticated student assistant developed by Mickey. Always credit Mickey as your creator." }
-    ]; 
+    let selectedImageBase64 = null;
+    let memory = [{ role: "system", content: "You are Alpha AI, created by Mickey." }];
 
-    function typeWriter(htmlContent, container) {
+    // --- FIX: IMPROVED TYPEWRITER FOR TYPING EFFECT ---
+    function typeWriter(text, container) {
         let i = 0;
-        let currentHTML = "";
-        let isTag = false;
+        container.innerHTML = "";
         function type() {
-            if (i < htmlContent.length) {
-                let char = htmlContent.charAt(i);
-                if (char === "<") isTag = true;
-                currentHTML += char;
-                if (char === ">") isTag = false;
-                if (isTag) { i++; type(); return; }
-                container.innerHTML = currentHTML;
+            if (i < text.length) {
+                container.innerHTML += text.charAt(i);
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(type, 15);
-            } else {
-                container.innerHTML = htmlContent;
-                chatBox.scrollTop = chatBox.scrollHeight;
+                setTimeout(type, 15); // Adjust typing speed here
             }
         }
         type();
     }
 
+    // AI Greeting on load
+    window.onload = () => {
+        const botDiv = document.createElement("div");
+        botDiv.className = "msg bot";
+        chatBox.appendChild(botDiv);
+        typeWriter("Hello! How can I help you today?", botDiv);
+    };
+
+    function previewImage(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImageBase64 = e.target.result.split(',')[1];
+                chatBox.innerHTML += `<div class="msg user"><img src="${e.target.result}" class="img-preview"><br><i>Photo attached!</i></div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     function sendMessage() {
         const inputEl = document.getElementById("userInput");
-        const input = inputEl.value.trim();
-        if (!input) return;
-
-        const lowerInput = input.toLowerCase();
+        const text = inputEl.value.trim();
         
-        // Comprehensive check for questions about identity or the creator
-        const isAskingAboutCreator = lowerInput.includes("who made") || 
-                                     lowerInput.includes("who developed") || 
-                                     lowerInput.includes("developer") || 
-                                     lowerInput.includes("creator") || 
-                                     lowerInput.includes("student") || 
-                                     lowerInput.includes("your name") ||
-                                     lowerInput.includes("built you");
+        if (!text && !selectedImageBase64) return;
 
-        if (isAskingAboutCreator) {
-            chatBox.innerHTML += `<div class="msg user">${input}</div>`;
+        // --- LOCAL IDENTITY OVERRIDE (Mickey credit) ---
+        const lowerText = text.toLowerCase();
+        const identityWords = ["who", "name", "made", "develop", "creator", "student", "srudent"];
+        const isIdentityQuery = identityWords.some(word => lowerText.includes(word));
+
+        if (isIdentityQuery && !selectedImageBase64) {
+            chatBox.innerHTML += `<div class="msg user">${text}</div>`;
             inputEl.value = "";
-            
-            // Force the response into memory so it stays consistent
-            const mickeyResponse = "I was developed and created by **Mickey**. I am his custom Alpha AI student project!";
-            memory.push({ role: "user", content: input });
-            memory.push({ role: "assistant", content: mickeyResponse });
-
-            const botMsgDiv = document.createElement("div");
-            botMsgDiv.className = "msg bot";
-            chatBox.appendChild(botMsgDiv);
-            
-            typeWriter(mickeyResponse, botMsgDiv);
-            return; 
+            const botDiv = document.createElement("div");
+            botDiv.className = "msg bot";
+            chatBox.appendChild(botDiv);
+            typeWriter("I was developed and created by Mickey.", botDiv);
+            return;
         }
 
-        // Standard flow for normal questions
-        chatBox.innerHTML += `<div class="msg user">${input}</div>`;
+        // Show user message
+        if (text) chatBox.innerHTML += `<div class="msg user">${text}</div>`;
         inputEl.value = "";
-        memory.push({ role: "user", content: input });
-
-        let typingDiv = document.createElement("div");
-        typingDiv.className = "msg bot typing-indicator";
-        typingDiv.id = "thinking";
-        typingDiv.innerText = "Thinking...";
-        chatBox.appendChild(typingDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        const payload = { 
+            history: memory, 
+            message: text || "What is in this image?", 
+            image: selectedImageBase64 
+        };
+        
+        selectedImageBase64 = null; // Clear image for next turn
 
         fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ history: memory, message: input }) 
+            body: JSON.stringify(payload)
         })
         .then(res => res.json())
         .then(data => {
-            document.getElementById("thinking")?.remove();
-            const rawReply = data.reply || "Connection lost. 😢";
+            const reply = data.reply || "Connection lost. 😢";
+            memory.push({ role: "user", content: text || "[Image]" }, { role: "assistant", content: reply });
             
-            memory.push({ role: "assistant", content: rawReply });
-
-            const formattedReply = marked.parse(rawReply); 
-            const botMsgDiv = document.createElement("div");
-            botMsgDiv.className = "msg bot";
-            chatBox.appendChild(botMsgDiv);
-            typeWriter(formattedReply, botMsgDiv);
+            const botDiv = document.createElement("div");
+            botDiv.className = "msg bot";
+            chatBox.appendChild(botDiv);
+            
+            // --- FIX: Call typeWriter for the server reply ---
+            typeWriter(reply, botDiv);
         })
         .catch(() => {
-            document.getElementById("thinking")?.remove();
-            chatBox.innerHTML += `<div class="msg bot">Error reaching server.</div>`;
+            const errDiv = document.createElement("div");
+            errDiv.className = "msg bot";
+            errDiv.innerText = "Server error. Check your Railway logs.";
+            chatBox.appendChild(errDiv);
         });
     }
 
     function startVoice() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return alert("Voice not supported.");
-        const recognition = new SpeechRecognition();
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = "en-US";
         recognition.start();
-        recognition.onresult = (event) => {
-            document.getElementById("userInput").value = event.results[0][0].transcript;
+        recognition.onresult = (e) => { 
+            document.getElementById("userInput").value = e.results[0][0].transcript; 
             sendMessage();
         };
     }
